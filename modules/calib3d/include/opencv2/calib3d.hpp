@@ -51,17 +51,73 @@
 /**
   @defgroup calib3d Camera Calibration and 3D Reconstruction
 
-The functions in this section use a so-called pinhole camera model. In this model, a scene view is
-formed by projecting 3D points into the image plane using a perspective transformation.
+The functions in this module use a so-called pinhole camera model. The view of a scene
+is obtained by projecting a scene's 3D point \f$P_w\f$ into the image plane which forms
+the corresponding pixel \f$p\f$. The distortion-free projective transformation given by
+such a camera model is shown below.
 
-\f[s  \; m' = A [R|t] M'\f]
+\f[s \; p = A \begin{bmatrix} R|t \end{bmatrix} P_w,\f]
 
-or
+where \f$P_w\f$ is a 3D point expressed with respect to the world coordinate system,
+\f$p\f$ is a 2D pixel in the image plane,
+\f$A\f$ is the intrinsic camera matrix,
+\f$R\f$ and \f$t\f$ are the rotation and translation that describe the change of coordinates
+from world to camera coordinate systems, and
+\f$s\f$ is the projective transformation's arbitrary scaling and not part of the camera
+model.
 
-\f[s  \vecthree{u}{v}{1} = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}
+The intrinsic camera matrix \f$A\f$ projects 3D points given in the camera coordinate system to 2D
+pixel coordinates, i.e.
+
+\f[p = A P_c.\f]
+
+The camera matrix \f$A\f$ is composed of the focal lengths \f$f_x\f$ and \f$f_y\f$, which are expressed in
+pixel units, and the principal point \f$(c_x, c_y)\f$, that is usually close to the image center:
+
+\f[A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1},\f]
+
+and thus
+
+\f[s \vecthree{u}{v}{1} = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}
 \begin{bmatrix}
-r_{11} & r_{12} & r_{13} & t_x  \\
-r_{21} & r_{22} & r_{23} & t_y  \\
+X_c \\
+Y_c \\
+Z_c \\
+1
+\end{bmatrix}\f].
+
+The matrix of intrinsic parameters does not depend on the scene viewed. So, once estimated, it can
+be re-used as long as the focal length is fixed (in case of zoom lens). Thus, if an image from the
+camera is scaled by a factor, all of these parameters need be scaled (multiplied/divided, respectively)
+by the same factor.
+
+The extrinsic matrix \f$\begin{bmatrix} R|t \end{bmatrix}\f$ represents the change of basis from world
+coordinate system \f$w\f$ to the camera coordinate sytem \f$ c \f$. Thus, given the representation of
+the point \f$P\f$ in world coordinates, \f$P_w\f$, we obtain \f$P\f$'s representation in the camera coordinate
+system, \f$P_c\f$, by
+
+\f[P_c = \begin{bmatrix} R|t \end{bmatrix} P_w \f].
+
+The joint rotation-translation matrix \f$\begin{bmatrix} R|t \end{bmatrix}\f$ is composed out of
+\f$R\f$, a 3-by-3 rotation matrix, and \f$t\f$, the 3-by-1 translation vector:
+
+\f[\begin{bmatrix} R|t \end{bmatrix} = \begin{bmatrix}
+r_{11} & r_{12} & r_{13} & t_x \\
+r_{21} & r_{22} & r_{23} & t_y \\
+r_{31} & r_{32} & r_{33} & t_z
+\end{bmatrix},
+\f]
+
+and therefore
+
+\f[\begin{bmatrix}
+X_c \\
+Y_c \\
+Z_c \\
+1
+\end{bmatrix} = \begin{bmatrix}
+r_{11} & r_{12} & r_{13} & t_x \\
+r_{21} & r_{22} & r_{23} & t_y \\
 r_{31} & r_{32} & r_{33} & t_z
 \end{bmatrix}
 \begin{bmatrix}
@@ -69,32 +125,55 @@ X_w \\
 Y_w \\
 Z_w \\
 1
+\end{bmatrix}\f].
+
+Without loss of generality, we will say that the matrix of extrinsic parameters gives the change from
+the world coordinate system to the camera coordinate system. Therefore, if one obtains
+\f$\begin{bmatrix} R|t \end{bmatrix}\f$ with respect to an object coordinate system, for example using
+@ref calibrateCamera, then one needs to keep in mind, that the extrinsic parameters do not express the
+change of basis from world to camera system but from object to camera system.
+
+Putting the equations for instrincs and extrinsics together, we can write out
+\f$s \; p = A \begin{bmatrix} R|t \end{bmatrix} P_w\f$ as
+
+\f[s \vecthree{u}{v}{1} = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}
+\begin{bmatrix}
+r_{11} & r_{12} & r_{13} & t_x \\
+r_{21} & r_{22} & r_{23} & t_y \\
+r_{31} & r_{32} & r_{33} & t_z
+\end{bmatrix}
+\begin{bmatrix}
+X_w \\
+Y_w \\
+Z_w \\
+1
+\end{bmatrix}.\f]
+
+If \f$Z_c \ne 0\f$, the transformation above is equivalent to the following,
+
+\f[\begin{bmatrix}
+u \\
+v
+\end{bmatrix} = \begin{bmatrix}
+f_x X_c/Z_c + c_x \\
+f_y Y_c/Z_c + c_y
 \end{bmatrix}\f]
 
-where:
+with
 
--   \f$(X_w, Y_w, Z_w)\f$ are the coordinates of a 3D point in the world coordinate space
--   \f$(u, v)\f$ are the coordinates of the projection point in pixels
--   \f$A\f$ is a camera matrix, or a matrix of intrinsic parameters
--   \f$(c_x, c_y)\f$ is a principal point that is usually at the image center
--   \f$f_x, f_y\f$ are the focal lengths expressed in pixel units.
-
-Thus, if an image from the camera is scaled by a factor, all of these parameters should be scaled
-(multiplied/divided, respectively) by the same factor. The matrix of intrinsic parameters does not
-depend on the scene viewed. So, once estimated, it can be re-used as long as the focal length is
-fixed (in case of zoom lens). The joint rotation-translation matrix \f$[R|t]\f$ is called a matrix of
-extrinsic parameters. It is used to describe the camera motion around a static scene, or vice versa,
-rigid motion of an object in front of a still camera. That is, \f$[R|t]\f$ translates coordinates of a
-world point \f$(X_w, Y_w, Z_w)\f$ to a coordinate system, fixed with respect to the camera.
-The transformation above is equivalent to the following (when \f$z \ne 0\f$ ):
-
-\f[\begin{array}{l}
-\vecthree{X_c}{Y_c}{Z_c} = R  \vecthree{X_w}{Y_w}{Z_w} + t \\
-x' = X_c/Z_c \\
-y' = Y_c/Z_c \\
-u = f_x \times x' + c_x \\
-v = f_y \times y' + c_y
-\end{array}\f]
+\f[\begin{bmatrix}
+X_c \\
+Y_c \\
+Z_c \\
+1
+\end{bmatrix} = \begin{bmatrix}
+R|t
+\end{bmatrix} \begin{bmatrix}
+X_w \\
+Y_w \\
+Z_w \\
+1
+\end{bmatrix}.\f]
 
 The following figure illustrates the pinhole camera model.
 
@@ -103,20 +182,43 @@ The following figure illustrates the pinhole camera model.
 Real lenses usually have some distortion, mostly radial distortion and slight tangential distortion.
 So, the above model is extended as:
 
-\f[\begin{array}{l}
-\vecthree{X_c}{Y_c}{Z_c} = R  \vecthree{X_w}{Y_w}{Z_w} + t \\
-x' = X_c/Z_c \\
-y' = Y_c/Z_c \\
-x'' = x'  \frac{1 + k_1 r^2 + k_2 r^4 + k_3 r^6}{1 + k_4 r^2 + k_5 r^4 + k_6 r^6} + 2 p_1 x' y' + p_2(r^2 + 2 x'^2) + s_1 r^2 + s_2 r^4 \\
-y'' = y'  \frac{1 + k_1 r^2 + k_2 r^4 + k_3 r^6}{1 + k_4 r^2 + k_5 r^4 + k_6 r^6} + p_1 (r^2 + 2 y'^2) + 2 p_2 x' y' + s_3 r^2 + s_4 r^4 \\
-\text{where} \quad r^2 = x'^2 + y'^2  \\
-u = f_x \times x'' + c_x \\
-v = f_y \times y'' + c_y
-\end{array}\f]
+\f[\begin{bmatrix}
+u \\
+v
+\end{bmatrix} = \begin{bmatrix}
+f_x x'' + c_x \\
+f_y y'' + c_y
+\end{bmatrix}\f]
 
-\f$k_1\f$, \f$k_2\f$, \f$k_3\f$, \f$k_4\f$, \f$k_5\f$, and \f$k_6\f$ are radial distortion coefficients. \f$p_1\f$ and \f$p_2\f$ are
-tangential distortion coefficients. \f$s_1\f$, \f$s_2\f$, \f$s_3\f$, and \f$s_4\f$, are the thin prism distortion
-coefficients. Higher-order coefficients are not considered in OpenCV.
+where
+
+\f[\begin{bmatrix}
+x'' \\
+y''
+\end{bmatrix} = \begin{bmatrix}
+x' \frac{1 + k_1 r^2 + k_2 r^4 + k_3 r^6}{1 + k_4 r^2 + k_5 r^4 + k_6 r^6} + 2 p_1 x' y' + p_2(r^2 + 2 x'^2) + s_1 r^2 + s_2 r^4 \\
+y' \frac{1 + k_1 r^2 + k_2 r^4 + k_3 r^6}{1 + k_4 r^2 + k_5 r^4 + k_6 r^6} + p_1 (r^2 + 2 y'^2) + 2 p_2 x' y' + s_3 r^2 + s_4 r^4 \\
+\end{bmatrix}\f]
+
+with
+
+\f[r^2 = x'^2 + y'^2\f]
+
+and
+
+\f[\begin{bmatrix}
+x'\\
+y'
+\end{bmatrix} = \begin{bmatrix}
+X_c/Z_c \\
+Y_c/Z_c
+\end{bmatrix},\f]
+
+if \f$Z_c \ne 0\f$.
+
+The distortion parameters are the radial coefficients \f$k_1\f$, \f$k_2\f$, \f$k_3\f$, \f$k_4\f$, \f$k_5\f$, and \f$k_6\f$
+,\f$p_1\f$ and \f$p_2\f$ are the tangential distortion coefficients, and \f$s_1\f$, \f$s_2\f$, \f$s_3\f$, and \f$s_4\f$,
+are the thin prism distortion coefficients. Higher-order coefficients are not considered in OpenCV.
 
 The next figures show two common types of radial distortion: barrel distortion
 (\f$ 1 + k_1 r^2 + k_2 r^4 + k_3 r^6 \f$ monotonically decreasing)
@@ -139,16 +241,22 @@ camera (Scheimpflug principle). This can be useful for particle image velocimetr
 triangulation with a laser fan. The tilt causes a perspective distortion of \f$x''\f$ and
 \f$y''\f$. This distortion can be modelled in the following way, see e.g. @cite Louhichi07.
 
-\f[\begin{array}{l}
-s\vecthree{x'''}{y'''}{1} =
+\f[\begin{bmatrix}
+u \\
+v
+\end{bmatrix} = \begin{bmatrix}
+f_x x''' + c_x \\
+f_y y''' + c_y
+\end{bmatrix},\f]
+
+where
+
+\f[s\vecthree{x'''}{y'''}{1} =
 \vecthreethree{R_{33}(\tau_x, \tau_y)}{0}{-R_{13}(\tau_x, \tau_y)}
 {0}{R_{33}(\tau_x, \tau_y)}{-R_{23}(\tau_x, \tau_y)}
-{0}{0}{1} R(\tau_x, \tau_y) \vecthree{x''}{y''}{1}\\
-u = f_x \times x''' + c_x \\
-v = f_y \times y''' + c_y
-\end{array}\f]
+{0}{0}{1} R(\tau_x, \tau_y) \vecthree{x''}{y''}{1}\f]
 
-where the matrix \f$R(\tau_x, \tau_y)\f$ is defined by two rotations with angular parameter \f$\tau_x\f$
+and the matrix \f$R(\tau_x, \tau_y)\f$ is defined by two rotations with angular parameter \f$\tau_x\f$
 and \f$\tau_y\f$, respectively,
 
 \f[
