@@ -2618,13 +2618,13 @@ CV_EXPORTS_W void validateDisparity( InputOutputArray disparity, InputArray cost
 @param disparity Input single-channel 8-bit unsigned, 16-bit signed, 32-bit signed or 32-bit
 floating-point disparity image.
 The values of 8-bit / 16-bit signed formats are assumed to have no fractional bits.
-If the disparity is 16-bit signed format as computed by
-StereoBM/StereoSGBM/StereoBinaryBM/StereoBinarySGBM and may be other algorithms,
+If the disparity is 16-bit signed format, as computed by @ref StereoBM or @ref StereoSGBM and maybe other algorithms,
 it should be divided by 16 (and scaled to float) before being used here.
 @param _3dImage Output 3-channel floating-point image of the same size as disparity . Each
 element of _3dImage(x,y) contains 3D coordinates of the point (x,y) computed from the disparity
-map.
-@param Q \f$4 \times 4\f$ perspective transformation matrix that can be obtained with stereoRectify.
+map. If one uses Q obtained by @ref stereoRectify, then the returned points are represented in the
+first camera's rectified coordinate system.
+@param Q \f$4 \times 4\f$ perspective transformation matrix that can be obtained with @ref stereoRectify.
 @param handleMissingValues Indicates, whether the function should handle missing values (i.e.
 points where the disparity was not computed). If handleMissingValues=true, then pixels with the
 minimal disparity that corresponds to the outliers (see StereoMatcher::compute ) are transformed
@@ -2636,11 +2636,20 @@ The function transforms a single-channel disparity map to a 3-channel image repr
 surface. That is, for each pixel (x,y) and the corresponding disparity d=disparity(x,y) , it
 computes:
 
-\f[\begin{array}{l} [X \; Y \; Z \; W]^T =  \texttt{Q} *[x \; y \; \texttt{disparity} (x,y) \; 1]^T  \\ \texttt{\_3dImage} (x,y) = (X/W, \; Y/W, \; Z/W) \end{array}\f]
+\f[\begin{bmatrix}
+X \\
+Y \\
+Z \\
+W
+\end{bmatrix} = Q \begin{bmatrix}
+x \\
+y \\
+\texttt{disparity} (x,y) \\
+z
+\end{bmatrix}.\f]
 
-The matrix Q can be an arbitrary \f$4 \times 4\f$ matrix (for example, the one computed by
-stereoRectify). To reproject a sparse set of points {(x,y,d),...} to 3D space, use
-perspectiveTransform .
+@sa
+   To reproject a sparse set of points {(x,y,d),...} to 3D space, use perspectiveTransform.
  */
 CV_EXPORTS_W void reprojectImageTo3D( InputArray disparity,
                                       OutputArray _3dImage, InputArray Q,
