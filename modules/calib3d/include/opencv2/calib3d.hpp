@@ -1557,14 +1557,13 @@ the calibration pattern coordinate space (e.g. std::vector<std::vector<cv::Vec3f
 vector contains as many elements as the number of the pattern views. If the same calibration pattern
 is shown in each view and it is fully visible, all the vectors will be the same. Although, it is
 possible to use partially occluded patterns, or even different patterns in different views. Then,
-the vectors will be different. The points are 3D, but since they are in a pattern coordinate system,
-then, if the rig is planar, it may make sense to put the model to a XY coordinate plane so that
-Z-coordinate of each input object point is 0.
+the vectors will be different. Although the points are 3D, they all lie in the calibration pattern's
+XY coordinate plane (thus 0 in the Z-coordinate), if the used calibration pattern is a planar rig.
 In the old interface all the vectors of object points from different views are concatenated
 together.
 @param imagePoints In the new interface it is a vector of vectors of the projections of calibration
-pattern points (e.g. std::vector<std::vector<cv::Vec2f>>). imagePoints.size() and
-objectPoints.size() and imagePoints[i].size() must be equal to objectPoints[i].size() for each i.
+pattern points (e.g. std::vector<std::vector<cv::Vec2f>>). imagePoints.size() and objectPoints.size(),
+and imagePoints[i].size() and objectPoints[i].size() for each i, must be equal, respectively.
 In the old interface all the vectors of object points from different views are concatenated
 together.
 @param imageSize Size of the image used only to initialize the intrinsic camera matrix.
@@ -1575,18 +1574,22 @@ initialized before calling the function.
 @param distCoeffs Output vector of distortion coefficients
 \f$(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6 [, s_1, s_2, s_3, s_4[, \tau_x, \tau_y]]]])\f$ of
 4, 5, 8, 12 or 14 elements.
-@param rvecs Output vector of rotation vectors (see Rodrigues ) estimated for each pattern view
-(e.g. std::vector<cv::Mat>>). That is, each k-th rotation vector together with the corresponding
-k-th translation vector (see the next output parameter description) brings the calibration pattern
-from the model coordinate space (in which object points are specified) to the world coordinate
-space, that is, a real position of the calibration pattern in the k-th pattern view (k=0.. *M* -1).
-@param tvecs Output vector of translation vectors estimated for each pattern view.
+@param rvecs Output vector of rotation vectors (@ref Rodrigues ) estimated for each pattern view
+(e.g. std::vector<cv::Mat>>). That is, each i-th rotation vector together with the corresponding
+i-th translation vector (see the next output parameter description) brings the calibration pattern
+from the object coordinate space (in which object points are specified) to the camera coordinate
+space. In more technical terms, the tupel of the i-th rotation and translation vector performs
+a change of basis from object coordinate space to camera coordinate space. Due to its duality, this
+tupel is equivalent to the position of the calibration pattern with respect to the camera coordinate
+space.
+@param tvecs Output vector of translation vectors estimated for each pattern view, see parameter describtion
+above.
 @param stdDeviationsIntrinsics Output vector of standard deviations estimated for intrinsic parameters.
  Order of deviations values:
 \f$(f_x, f_y, c_x, c_y, k_1, k_2, p_1, p_2, k_3, k_4, k_5, k_6 , s_1, s_2, s_3,
  s_4, \tau_x, \tau_y)\f$ If one of parameters is not estimated, it's deviation is equals to zero.
 @param stdDeviationsExtrinsics Output vector of standard deviations estimated for extrinsic parameters.
- Order of deviations values: \f$(R_1, T_1, \dotsc , R_M, T_M)\f$ where M is number of pattern views,
+ Order of deviations values: \f$(R_0, T_0, \dotsc , R_M, T_M)\f$ where M is number of pattern views,
  \f$R_i, T_i\f$ are concatenated 1x3 vectors.
  @param perViewErrors Output vector of the RMS re-projection error estimated for each pattern view.
 @param flags Different flags that may be zero or a combination of the following values:
@@ -1634,7 +1637,7 @@ views. The algorithm is based on @cite Zhang2000 and @cite BouguetMCT . The coor
 points and their corresponding 2D projections in each view must be specified. That may be achieved
 by using an object with a known geometry and easily detectable feature points. Such an object is
 called a calibration rig or calibration pattern, and OpenCV has built-in support for a chessboard as
-a calibration rig (see findChessboardCorners ). Currently, initialization of intrinsic parameters
+a calibration rig (see @ref findChessboardCorners). Currently, initialization of intrinsic parameters
 (when CALIB_USE_INTRINSIC_GUESS is not set) is only implemented for planar calibration
 patterns (where Z-coordinates of the object points must be all zeros). 3D calibration rigs can also
 be used as long as initial cameraMatrix is provided.
@@ -1654,11 +1657,11 @@ The algorithm performs the following steps:
     objectPoints. See projectPoints for details.
 
 @note
-   If you use a non-square (=non-NxN) grid and findChessboardCorners for calibration, and
-    calibrateCamera returns bad values (zero distortion coefficients, an image center very far from
-    (w/2-0.5,h/2-0.5), and/or large differences between \f$f_x\f$ and \f$f_y\f$ (ratios of 10:1 or more)),
-    then you have probably used patternSize=cvSize(rows,cols) instead of using
-    patternSize=cvSize(cols,rows) in findChessboardCorners .
+    If you use a non-square (i.e. non-N-by-N) grid and @ref findChessboardCorners for calibration, and
+    @ref calibrateCamera returns bad values (zero distortion coefficients, \f$c_x\f$ and \f$c_y\f$ very far
+    from the image center, and/or large differences between \f$f_x\f$ and \f$f_y\f$
+    (ratios of 10:1 or more)), then you are probably using patternSize=cvSize(rows,cols) instead of using
+    patternSize=cvSize(cols,rows) in @ref findChessboardCorners.
 
 @sa
    calibrateCameraRO, findChessboardCorners, solvePnP, initCameraMatrix2D, stereoCalibrate, undistort
