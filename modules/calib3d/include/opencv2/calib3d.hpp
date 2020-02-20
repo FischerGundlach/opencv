@@ -1567,11 +1567,11 @@ and imagePoints[i].size() and objectPoints[i].size() for each i, must be equal, 
 In the old interface all the vectors of object points from different views are concatenated
 together.
 @param imageSize Size of the image used only to initialize the intrinsic camera matrix.
-@param cameraMatrix Output 3x3 floating-point camera matrix
+@param cameraMatrix Input/output 3x3 floating-point camera matrix
 \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ . If CV\_CALIB\_USE\_INTRINSIC\_GUESS
 and/or CALIB_FIX_ASPECT_RATIO are specified, some or all of fx, fy, cx, cy must be
 initialized before calling the function.
-@param distCoeffs Output vector of distortion coefficients
+@param distCoeffs Input/output vector of distortion coefficients
 \f$(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6 [, s_1, s_2, s_3, s_4[, \tau_x, \tau_y]]]])\f$ of
 4, 5, 8, 12 or 14 elements.
 @param rvecs Output vector of rotation vectors (@ref Rodrigues ) estimated for each pattern view
@@ -1788,27 +1788,34 @@ CV_EXPORTS_W void calibrationMatrixValues( InputArray cameraMatrix, Size imageSi
                                            CV_OUT double& focalLength, CV_OUT Point2d& principalPoint,
                                            CV_OUT double& aspectRatio );
 
-/** @brief Calibrates the stereo camera.
+/** @brief Calibrates a stereo camera set up. This function finds the intrinsic parameters
+for each of the two cameras and the extrinsic parameters between the two cameras.
 
-@param objectPoints Vector of vectors of the calibration pattern points.
+@param objectPoints Vector of vectors of the calibration pattern points. The same structure as
+in @ref calibrateCamera. For each pattern view, both cameras need to see the exact same object points.
+Therefore, objectPoints.size(), imagePoints1.size(), and imagePoints2.size() need to be equal as
+well as objectPoints[i].size(), imagePoints1[i].size(), and imagePoints2[i].size() need to be
+equal for each i.
 @param imagePoints1 Vector of vectors of the projections of the calibration pattern points,
-observed by the first camera.
+observed by the first camera. The same structure as in @ref calibrateCamera.
 @param imagePoints2 Vector of vectors of the projections of the calibration pattern points,
-observed by the second camera.
-@param cameraMatrix1 Input/output first camera matrix:
-\f$\vecthreethree{f_x^{(j)}}{0}{c_x^{(j)}}{0}{f_y^{(j)}}{c_y^{(j)}}{0}{0}{1}\f$ , \f$j = 0,\, 1\f$ . If
-any of CALIB_USE_INTRINSIC_GUESS , CALIB_FIX_ASPECT_RATIO ,
-CALIB_FIX_INTRINSIC , or CALIB_FIX_FOCAL_LENGTH are specified, some or all of the
-matrix components must be initialized. See the flags description for details.
-@param distCoeffs1 Input/output vector of distortion coefficients
-\f$(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6 [, s_1, s_2, s_3, s_4[, \tau_x, \tau_y]]]])\f$ of
-4, 5, 8, 12 or 14 elements. The output vector length depends on the flags.
-@param cameraMatrix2 Input/output second camera matrix. The parameter is similar to cameraMatrix1
-@param distCoeffs2 Input/output lens distortion coefficients for the second camera. The parameter
-is similar to distCoeffs1 .
-@param imageSize Size of the image used only to initialize intrinsic camera matrix.
-@param R Output rotation matrix between the 1st and the 2nd camera coordinate systems.
-@param T Output translation vector between the coordinate systems of the cameras.
+observed by the second camera. The same structure as in @ref calibrateCamera.
+@param cameraMatrix1 Input/output camera matrix for the first camera, the same as in
+@ref calibrateCamera. Furthermore, for the stereo case additional flags may be used, see below.
+@param distCoeffs1 Input/output vector of distortion coefficients, the same as in
+@ref calibrateCamera.
+@param cameraMatrix2 Input/output second camera matrix for the second camera. See description for
+cameraMatrix1.
+@param distCoeffs2 Input/output lens distortion coefficients for the second camera. See
+description for distCoeffs1.
+@param imageSize Size of the image used only to initialize the intrinsic camera matrices.
+@param R Output rotation matrix. Together with the translation vector T, this matrix brings
+points given in the first camera's coordinate system to points in the second camera's
+coordinate system. In more technical terms, the tupel of R and T performs a change of basis
+from the first camera's coordinate system to the second camera's coordinate system. Due to its
+duality, this tupel is equivalent to the position of the first camera with respect to the
+second camera coordinate system.
+@param T Output translation vector, see description above.
 @param E Output essential matrix.
 @param F Output fundamental matrix.
 @param perViewErrors Output vector of the RMS re-projection error estimated for each pattern view.
@@ -1849,16 +1856,34 @@ the optimization. If CALIB_USE_INTRINSIC_GUESS is set, the coefficient from the
 supplied distCoeffs matrix is used. Otherwise, it is set to 0.
 @param criteria Termination criteria for the iterative optimization algorithm.
 
-The function estimates transformation between two cameras making a stereo pair. If you have a stereo
-camera where the relative position and orientation of two cameras is fixed, and if you computed
-poses of an object relative to the first camera and to the second camera, (R1, T1) and (R2, T2),
-respectively (this can be done with solvePnP ), then those poses definitely relate to each other.
-This means that, given ( \f$R_1\f$,\f$T_1\f$ ), it should be possible to compute ( \f$R_2\f$,\f$T_2\f$ ). You only
-need to know the position and orientation of the second camera relative to the first camera. This is
-what the described function does. It computes ( \f$R\f$,\f$T\f$ ) so that:
+The function estimates the transformation between two cameras making a stereo pair. If one computes the
+poses of an object relative to the first camera and to the second camera, ( \f$R_1\f$,\f$T_1\f$ ) and
+(\f$R_2\f$,\f$T_2\f$), respectively, for a stereo camera where the relative position and orientation
+between the two cameras are fixed, then those poses definitely relate to each other.
+This means, if the relative position and orientation (\f$R\f$,\f$T\f$) of the two cameras is known,
+it is possible to compute (\f$R_2\f$,\f$T_2\f$) when (\f$R_1\f$,\f$T_1\f$) is given. This is what the
+described function does. It computes (\f$R\f$,\f$T\f$) such that:
 
 \f[R_2=R*R_1\f]
-\f[T_2=R*T_1 + T,\f]
+\f[T_2=R*T_1 + T.\f]
+
+Therefore, one can compute the coordinate representation of a 3D point for the second camera's coordinate
+system when given the point's coordinate representation in the first camera's coordinate system:
+
+\f[\begin{bmatrix}
+X_2 \\
+Y_2 \\
+Z_2 \\
+1
+\end{bmatrix} = \begin{bmatrix}
+R|T
+\end{bmatrix} \begin{bmatrix}
+X_1 \\
+Y_1 \\
+Z_1 \\
+1
+\end{bmatrix}.\f]
+
 
 Optionally, it computes the essential matrix E:
 
@@ -1879,7 +1904,7 @@ estimated at once, it makes sense to restrict some parameters, for example, pass
 CALIB_SAME_FOCAL_LENGTH and CALIB_ZERO_TANGENT_DIST flags, which is usually a
 reasonable assumption.
 
-Similarly to calibrateCamera , the function minimizes the total re-projection error for all the
+Similarly to calibrateCamera, the function minimizes the total re-projection error for all the
 points in all the available views from both cameras. The function returns the final value of the
 re-projection error.
  */
