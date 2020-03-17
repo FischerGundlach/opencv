@@ -707,10 +707,11 @@ CV_EXPORTS_W void composeRT( InputArray rvec1, InputArray tvec1,
 
 /** @brief Projects 3D points to an image plane.
 
-@param objectPoints Array of object points, 3xN/Nx3 1-channel or 1xN/Nx1 3-channel (or
-vector\<Point3f\> ), where N is the number of points in the view.
-@param rvec Rotation vector. See Rodrigues for details.
-@param tvec Translation vector.
+@param objectPoints Array of object points expressed wrt. the world coordinate frame. A 3xN/Nx3
+1-channel or 1xN/Nx1 3-channel (or vector\<Point3f\> ), where N is the number of points in the view.
+@param rvec The rotation vector (@ref Rodrigues) that, together with tvec, performs a change of
+basis from world to camera coordinate system, see @ref calibrateCamera for details.
+@param tvec The translation vector, see parameter description above.
 @param cameraMatrix Camera matrix \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{_1}\f$ .
 @param distCoeffs Input vector of distortion coefficients
 \f$(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6 [, s_1, s_2, s_3, s_4[, \tau_x, \tau_y]]]])\f$ of
@@ -722,20 +723,21 @@ points with respect to components of the rotation vector, translation vector, fo
 coordinates of the principal point and the distortion coefficients. In the old interface different
 components of the jacobian are returned via different output parameters.
 @param aspectRatio Optional "fixed aspect ratio" parameter. If the parameter is not 0, the
-function assumes that the aspect ratio (*fx/fy*) is fixed and correspondingly adjusts the jacobian
-matrix.
+function assumes that the aspect ratio (\f$f_x / f_y\f$) is fixed and correspondingly adjusts the
+jacobian matrix.
 
-The function computes projections of 3D points to the image plane given intrinsic and extrinsic
-camera parameters. Optionally, the function computes Jacobians - matrices of partial derivatives of
-image points coordinates (as functions of all the input parameters) with respect to the particular
-parameters, intrinsic and/or extrinsic. The Jacobians are used during the global optimization in
-calibrateCamera, solvePnP, and stereoCalibrate . The function itself can also be used to compute a
-re-projection error given the current intrinsic and extrinsic parameters.
+The function computes the 2D projections of 3D points to the image plane, given intrinsic and
+extrinsic camera parameters. Optionally, the function computes Jacobians -matrices of partial
+derivatives of image points coordinates (as functions of all the input parameters) with respect to
+the particular parameters, intrinsic and/or extrinsic. The Jacobians are used during the global
+optimization in @ref calibrateCamera, @ref solvePnP, and @ref stereoCalibrate. The function itself
+can also be used to compute a re-projection error, given the current intrinsic and extrinsic
+parameters.
 
-@note By setting rvec=tvec=(0,0,0) or by setting cameraMatrix to a 3x3 identity matrix, or by
-passing zero distortion coefficients, you can get various useful partial cases of the function. This
-means that you can compute the distorted coordinates for a sparse set of points or apply a
-perspective transformation (and also compute the derivatives) in the ideal zero-distortion setup.
+@note By setting rvec = tvec = \f$[0, 0, 0]\f$, or by setting cameraMatrix to a 3x3 identity matrix,
+or by passing zero distortion coefficients, one can get various useful partial cases of the
+function. This means, one can compute the distorted coordinates for a sparse set of points or apply
+a perspective transformation (and also compute the derivatives) in the ideal zero-distortion setup.
  */
 CV_EXPORTS_W void projectPoints( InputArray objectPoints,
                                  InputArray rvec, InputArray tvec,
