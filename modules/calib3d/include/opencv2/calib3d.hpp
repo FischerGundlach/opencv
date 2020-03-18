@@ -2429,9 +2429,16 @@ CV_EXPORTS_W Mat findEssentialMat( InputArray points1, InputArray points2,
 @param R2 Another possible rotation matrix.
 @param t One possible translation.
 
-This function decompose an essential matrix E using svd decomposition @cite HartleyZ00 . Generally 4
-possible poses exists for a given E. They are \f$[R_1, t]\f$, \f$[R_1, -t]\f$, \f$[R_2, t]\f$, \f$[R_2, -t]\f$. By
-decomposing E, you can only get the direction of the translation, so the function returns unit t.
+This function decomposes the essential matrix E using svd decomposition @cite HartleyZ00. In
+general, four possible poses exist for the decomposition of E. They are \f$[R_1, t]\f$,
+\f$[R_1, -t]\f$, \f$[R_2, t]\f$, \f$[R_2, -t]\f$.
+
+If E gives the epipolar constraint \f$[p_2; 1]^T A^{-T} E A^{-1} [p_1; 1] = 0\f$ between the image
+points \f$p_1\f$ in the first image and \f$p_2\f$ in second image, then any of the tupels
+\f$[R_1, t]\f$, \f$[R_1, -t]\f$, \f$[R_2, t]\f$, \f$[R_2, -t]\f$ is a change of basis from the first
+camera's coordinate system to the second camera's coordinate system. However, by decomposing E, one
+can only get the direction of the translation. For this reason, the translation t is returned with
+unit length.
  */
 CV_EXPORTS_W void decomposeEssentialMat( InputArray E, OutputArray R1, OutputArray R2, OutputArray t );
 
