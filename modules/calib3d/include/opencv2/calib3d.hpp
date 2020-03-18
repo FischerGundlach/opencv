@@ -2435,29 +2435,34 @@ decomposing E, you can only get the direction of the translation, so the functio
  */
 CV_EXPORTS_W void decomposeEssentialMat( InputArray E, OutputArray R1, OutputArray R2, OutputArray t );
 
-/** @brief Recover relative camera rotation and translation from an estimated essential matrix and the
-corresponding points in two images, using cheirality check. Returns the number of inliers which pass
-the check.
+/** @brief Recovers the relative camera rotation and the translation from an estimated essential
+matrix and the corresponding points in two images, using cheirality check. Returns the number of
+inliers which pass the check.
 
 @param E The input essential matrix.
 @param points1 Array of N 2D points from the first image. The point coordinates should be
 floating-point (single or double precision).
 @param points2 Array of the second image points of the same size and format as points1 .
-@param cameraMatrix Camera matrix \f$K = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ .
+@param cameraMatrix Camera matrix \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ .
 Note that this function assumes that points1 and points2 are feature points from cameras with the
 same camera matrix.
-@param R Recovered relative rotation.
-@param t Recovered relative translation.
-@param mask Input/output mask for inliers in points1 and points2.
-:   If it is not empty, then it marks inliers in points1 and points2 for then given essential
-matrix E. Only these inliers will be used to recover pose. In the output mask only inliers
-which pass the cheirality check.
-This function decomposes an essential matrix using decomposeEssentialMat and then verifies possible
-pose hypotheses by doing cheirality check. The cheirality check basically means that the
+@param R Output rotation matrix. Together with the translation vector, this matrix makes up a tupel
+that performs a change of basis from the first camera's coordinate system to the second camera's
+coordinate system. Note that, in general, t can not be used for this tupel, see the parameter
+description below.
+@param t Output translation vector. This vector is obtained by @ref decomposeEssentialMat and
+therefore is only known up to scale, i.e. t is the direction of the translation vector and has unit
+length.
+@param mask Input/output mask for inliers in points1 and points2. If it is not empty, then it marks
+inliers in points1 and points2 for then given essential matrix E. Only these inliers will be used to
+recover pose. In the output mask only inliers which pass the cheirality check.
+
+This function decomposes an essential matrix using @ref decomposeEssentialMat and then verifies
+possible pose hypotheses by doing cheirality check. The cheirality check basically means that the
 triangulated 3D points should have positive depth. Some details can be found in @cite Nister03 .
 
-This function can be used to process output E and mask from findEssentialMat. In this scenario,
-points1 and points2 are the same input for findEssentialMat. :
+This function can be used to process the output E and mask from @ref findEssentialMat. In this
+scenario, points1 and points2 are the same input for findEssentialMat.:
 @code
     // Example. Estimation of fundamental matrix using the RANSAC algorithm
     int point_count = 100;
@@ -2489,20 +2494,24 @@ CV_EXPORTS_W int recoverPose( InputArray E, InputArray points1, InputArray point
 @param points1 Array of N 2D points from the first image. The point coordinates should be
 floating-point (single or double precision).
 @param points2 Array of the second image points of the same size and format as points1 .
-@param R Recovered relative rotation.
-@param t Recovered relative translation.
+@param R Output rotation matrix. Together with the translation vector, this matrix makes up a tupel
+that performs a change of basis from the first camera's coordinate system to the second camera's
+coordinate system. Note that, in general, t can not be used for this tupel, see the parameter
+description below.
+@param t Output translation vector. This vector is obtained by @ref decomposeEssentialMat and
+therefore is only known up to scale, i.e. t is the direction of the translation vector and has unit
+length.
 @param focal Focal length of the camera. Note that this function assumes that points1 and points2
 are feature points from cameras with same focal length and principal point.
 @param pp principal point of the camera.
-@param mask Input/output mask for inliers in points1 and points2.
-:   If it is not empty, then it marks inliers in points1 and points2 for then given essential
-matrix E. Only these inliers will be used to recover pose. In the output mask only inliers
-which pass the cheirality check.
+@param mask Input/output mask for inliers in points1 and points2. If it is not empty, then it marks
+inliers in points1 and points2 for then given essential matrix E. Only these inliers will be used to
+recover pose. In the output mask only inliers which pass the cheirality check.
 
 This function differs from the one above that it computes camera matrix from focal length and
 principal point:
 
-\f[K =
+\f[A =
 \begin{bmatrix}
 f & 0 & x_{pp}  \\
 0 & f & y_{pp}  \\
@@ -2519,19 +2528,26 @@ CV_EXPORTS_W int recoverPose( InputArray E, InputArray points1, InputArray point
 @param points1 Array of N 2D points from the first image. The point coordinates should be
 floating-point (single or double precision).
 @param points2 Array of the second image points of the same size and format as points1.
-@param cameraMatrix Camera matrix \f$K = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ .
+@param cameraMatrix Camera matrix \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ .
 Note that this function assumes that points1 and points2 are feature points from cameras with the
 same camera matrix.
-@param R Recovered relative rotation.
-@param t Recovered relative translation.
-@param distanceThresh threshold distance which is used to filter out far away points (i.e. infinite points).
-@param mask Input/output mask for inliers in points1 and points2.
-:   If it is not empty, then it marks inliers in points1 and points2 for then given essential
-matrix E. Only these inliers will be used to recover pose. In the output mask only inliers
-which pass the cheirality check.
-@param triangulatedPoints 3d points which were reconstructed by triangulation.
- */
+@param R Output rotation matrix. Together with the translation vector, this matrix makes up a tupel
+that performs a change of basis from the first camera's coordinate system to the second camera's
+coordinate system. Note that, in general, t can not be used for this tupel, see the parameter
+description below.
+@param t Output translation vector. This vector is obtained by @ref decomposeEssentialMat and
+therefore is only known up to scale, i.e. t is the direction of the translation vector and has unit
+length.
+@param distanceThresh threshold distance which is used to filter out far away points (i.e. infinite
+points).
+@param mask Input/output mask for inliers in points1 and points2. If it is not empty, then it marks
+inliers in points1 and points2 for then given essential matrix E. Only these inliers will be used to
+recover pose. In the output mask only inliers which pass the cheirality check.
+@param triangulatedPoints 3D points which were reconstructed by triangulation.
 
+This function differs from the one above that it outputs the triangulated 3D point that are used for
+the cheirality check.
+ */
 CV_EXPORTS_W int recoverPose( InputArray E, InputArray points1, InputArray points2,
                             InputArray cameraMatrix, OutputArray R, OutputArray t, double distanceThresh, InputOutputArray mask = noArray(),
                             OutputArray triangulatedPoints = noArray());
