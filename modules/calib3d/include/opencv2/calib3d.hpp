@@ -51,7 +51,7 @@
 /**
   @defgroup calib3d Camera Calibration and 3D Reconstruction
 
-The functions in this module use a so-called pinhole camera model. The view of a scene
+The functions in this section use a so-called pinhole camera model. The view of a scene
 is obtained by projecting a scene's 3D point \f$P_w\f$ into the image plane which forms
 the corresponding pixel \f$p\f$. The distortion-free projective transformation given by
 such a camera model is shown below.
