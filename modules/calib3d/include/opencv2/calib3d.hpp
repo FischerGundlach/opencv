@@ -289,6 +289,10 @@ pattern (every view is described by several 3D-2D point correspondences).
 *rectification* transformation that makes the camera optical axes parallel.
 
 @note
+    -   Many functions in this module take a camera matrix as an input parameter. Although all
+        functions assume the same structure of this parameter, they may name it differently. The
+        parameter's description, however, will be clear in that a camera matrix with the structure
+        shown above is required.
     -   A calibration sample for 3 cameras in a horizontal position can be found at
         opencv_source_code/samples/cpp/3calibration.cpp
     -   A calibration sample based on a sequence of images can be found at
