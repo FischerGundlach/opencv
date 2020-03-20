@@ -2901,11 +2901,19 @@ Check @ref tutorial_homography "the corresponding tutorial" for more details.
 @param translations Array of translation matrices.
 @param normals Array of plane normal matrices.
 
-This function extracts relative camera motion between two views observing a planar object from the
-homography H induced by the plane. The intrinsic camera matrix K must also be provided. The function
-may return up to four mathematical solution sets. At least two of the solutions may further be
-invalidated if point correspondences are available by applying positive depth constraint (all points
-must be in front of the camera). The decomposition method is described in detail in @cite Malis .
+This function extracts relative camera motion between two views of a planar object and returns up to
+four mathematical solution tuples of rotation, translation and plane normal. The decomposition of
+the homography matrix H is described in detail in @cite Malis.
+
+If the homography H, induced by the plane, gives the constraint
+\f[s_i \vecthree{x'_i}{y'_i}{1} \sim H \vecthree{x_i}{y_i}{1}\f] on the source image points
+\f$p_i\f$ and the destination image points \f$p'_i\f$, then the tuple of rotations[k] and
+translations[k] is a change of basis from the source camera's coordinate system to the destination
+camera's coordinate system. However, by decomposing H, one can only get the translation normalized
+by the (typically unknown) depth of the scene, i.e. its direction but with normalized length.
+
+If point correspondences are available, at least two solutions may further be invalidated, by
+applying positive depth constraint, i.e. all points must be in front of the camera.
  */
 CV_EXPORTS_W int decomposeHomographyMat(InputArray H,
                                         InputArray K,
