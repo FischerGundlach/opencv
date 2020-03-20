@@ -1590,7 +1590,7 @@ tuple is equivalent to the position of the calibration pattern with respect to t
 space.
 @param tvecs Output vector of translation vectors estimated for each pattern view, see parameter
 describtion above.
-@param stdDeviationsIntrinsics Output vector of standard deviations estimated for intrinsic 
+@param stdDeviationsIntrinsics Output vector of standard deviations estimated for intrinsic
 parameters. Order of deviations values:
 \f$(f_x, f_y, c_x, c_y, k_1, k_2, p_1, p_2, k_3, k_4, k_5, k_6 , s_1, s_2, s_3,
  s_4, \tau_x, \tau_y)\f$ If one of parameters is not estimated, it's deviation is equals to zero.
@@ -2024,7 +2024,7 @@ coordinates. The function distinguishes the following two cases:
                         0 & 0 & 1 & 0
                      \end{bmatrix},\f]
 
-    where \f$T_y\f$ is a vertical shift between the cameras and \f$cy_1=cy_2\f$ if 
+    where \f$T_y\f$ is a vertical shift between the cameras and \f$cy_1=cy_2\f$ if
     CALIB_ZERO_DISPARITY is set.
 
 As you can see, the first three columns of P1 and P2 will effectively be the new "rectified" camera
