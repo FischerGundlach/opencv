@@ -77,13 +77,7 @@ image center:
 
 and thus
 
-\f[s \vecthree{u}{v}{1} = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}
-\begin{bmatrix}
-X_c \\
-Y_c \\
-Z_c \\
-1
-\end{bmatrix}.\f]
+\f[s \vecthree{u}{v}{1} = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1} \vecthree{X_c}{Y_c}{Z_c}.\f]
 
 The matrix of intrinsic parameters does not depend on the scene viewed. So, once estimated, it can
 be re-used as long as the focal length is fixed (in case of a zoom lens). Thus, if an image from the
@@ -109,12 +103,7 @@ r_{31} & r_{32} & r_{33} & t_z
 
 and therefore
 
-\f[\begin{bmatrix}
-X_c \\
-Y_c \\
-Z_c \\
-1
-\end{bmatrix} = \begin{bmatrix}
+\f[\vecthree{X_c}{Y_c}{Z_c} = \begin{bmatrix}
 r_{11} & r_{12} & r_{13} & t_x \\
 r_{21} & r_{22} & r_{23} & t_y \\
 r_{31} & r_{32} & r_{33} & t_z
@@ -160,12 +149,7 @@ f_y Y_c/Z_c + c_y
 
 with
 
-\f[\begin{bmatrix}
-X_c \\
-Y_c \\
-Z_c \\
-1
-\end{bmatrix} = \begin{bmatrix}
+\f[\vecthree{X_c}{Y_c}{Z_c} = \begin{bmatrix}
 R|t
 \end{bmatrix} \begin{bmatrix}
 X_w \\
