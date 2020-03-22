@@ -53,8 +53,13 @@
 
 The functions in this section use a so-called pinhole camera model. The view of a scene
 is obtained by projecting a scene's 3D point \f$P_w\f$ into the image plane using a perspective
-transformation which forms the corresponding pixel \f$p\f$. The distortion-free projective
-transformation given by such a camera model is shown below.
+transformation which forms the corresponding pixel \f$p\f$. Both \f$P_w\f$ and \f$p\f$ are
+represented in homogeneous coordinates, i.e. as 3D and 2D homogeneous vector respectively. You will
+find a brief introduction to projective geometry, homogeneous vectors and homogeneous
+transformations at the end of this section's introduction. For more succinct notation, we often drop
+the 'homogeneous' and say vector instead of homogeneous vector.
+
+The distortion-free projective transformation given by a  pinhole camera model is shown below.
 
 \f[s \; p = A \begin{bmatrix} R|t \end{bmatrix} P_w,\f]
 
@@ -84,26 +89,85 @@ be re-used as long as the focal length is fixed (in case of a zoom lens). Thus, 
 camera is scaled by a factor, all of these parameters need to be scaled (multiplied/divided,
 respectively) by the same factor.
 
-The extrinsic matrix \f$\begin{bmatrix} R|t \end{bmatrix}\f$ represents the change of basis from
-world coordinate system \f$w\f$ to the camera coordinate sytem \f$ c \f$. Thus, given the
-representation of the point \f$P\f$ in world coordinates, \f$P_w\f$, we obtain \f$P\f$'s
-representation in the camera coordinate system, \f$P_c\f$, by
+The joint rotation-translation matrix \f$[R|t]\f$ is the matrix product of a projective
+transformation and a homogeneous transformation. The 3-by-4 projective transformation maps 3D points
+represented in camera coordinates to 2D points in the image plane and represented in camera
+coordinates:
 
-\f[P_c = \begin{bmatrix} R|t \end{bmatrix} P_w.\f]
+\f[\begin{bmatrix}
+X_c \\
+Y_c \\
+Z_c
+\end{bmatrix} = \begin{bmatrix}
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0
+\end{bmatrix}
+\begin{bmatrix}
+X_c \\
+Y_c \\
+Z_c \\
+1
+\end{bmatrix}.\f]
 
-The joint rotation-translation matrix \f$\begin{bmatrix} R|t \end{bmatrix}\f$ is composed out of
-\f$R\f$, a 3-by-3 rotation matrix, and \f$t\f$, the 3-by-1 translation vector:
+The homogeneous transformation is encoded by the extrinsic parameters \f$R\f$ and \f$t\f$ and
+represents the change of basis from world coordinate system \f$w\f$ to the camera coordinate sytem
+\f$c\f$. Thus, given the representation of the point \f$P\f$ in world coordinates, \f$P_w\f$, we
+obtain \f$P\f$'s representation in the camera coordinate system, \f$P_c\f$, by
 
-\f[\begin{bmatrix} R|t \end{bmatrix} = \begin{bmatrix}
+\f[P_c = \begin{bmatrix}
+R & t \\
+0 & 1
+\end{bmatrix} P_w,\f]
+
+This homogeneous transformation is composed out of \f$R\f$, a 3-by-3 rotation matrix, and \f$t\f$, a
+3-by-1 translation vector:
+
+\f[\begin{bmatrix}
+R & t \\
+0 & 1
+\end{bmatrix} = \begin{bmatrix}
 r_{11} & r_{12} & r_{13} & t_x \\
 r_{21} & r_{22} & r_{23} & t_y \\
-r_{31} & r_{32} & r_{33} & t_z
+r_{31} & r_{32} & r_{33} & t_z \\
+0 & 0 & 0 & 1
 \end{bmatrix},
 \f]
 
 and therefore
 
-\f[\vecthree{X_c}{Y_c}{Z_c} = \begin{bmatrix}
+\f[\begin{bmatrix}
+X_c \\
+Y_c \\
+Z_c \\
+1
+\end{bmatrix} = \begin{bmatrix}
+r_{11} & r_{12} & r_{13} & t_x \\
+r_{21} & r_{22} & r_{23} & t_y \\
+r_{31} & r_{32} & r_{33} & t_z \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+X_w \\
+Y_w \\
+Z_w \\
+1
+\end{bmatrix}.\f]
+
+Combining the projective transformation and the homogeneous transformation, we obtain the projective
+transformation that maps 3D points in world coordinates into 2D points in the image plane and in
+camera coordinates:
+
+\f[\begin{bmatrix}
+X_c \\
+Y_c \\
+Z_c
+\end{bmatrix} = \begin{bmatrix} R|t \end{bmatrix} \begin{bmatrix}
+X_w \\
+Y_w \\
+Z_w \\
+1
+\end{bmatrix} = \begin{bmatrix}
 r_{11} & r_{12} & r_{13} & t_x \\
 r_{21} & r_{22} & r_{23} & t_y \\
 r_{31} & r_{32} & r_{33} & t_z
@@ -271,6 +335,56 @@ projections.
 pattern (every view is described by several 3D-2D point correspondences).
 -   Estimate the relative position and orientation of the stereo camera "heads" and compute the
 *rectification* transformation that makes the camera optical axes parallel.
+
+<B> Homogeneous Coordinates </B><br>
+Homogeneous Coordinates are a system of coordinates that are used in projective geometry. Their use
+allows to represent points at infinity by finite coordinates and simplifies formulas when compared
+to the cartesian counterparts, e.g. they have the advantage that affine transformations can be
+expressed as linear homogeneous transformation.
+
+One obtains the homogeneous vector \f$P_h\f$ by appending a 1 along an n-dimensional cartesian
+vector \f$P\f$ e.g. for a 3D cartesian vector the mapping \f$P \rightarrow P_h\f$ is:
+
+\f[\begin{bmatrix}
+X \\
+Y \\
+Z
+\end{bmatrix} \rightarrow \begin{bmatrix}
+X \\
+Y \\
+Z \\
+1
+\end{bmatrix}.\f]
+
+For the inverse mapping \f$P_h \rightarrow P\f$, one devides all elements of the homogeneous vector
+by its last element, e.g. for a 3D homogeneous vector one gets its 2D cartesian counterpart by:
+
+\f[\begin{bmatrix}
+X \\
+Y \\
+W
+\end{bmatrix} \rightarrow \begin{bmatrix}
+X / W \\
+Y / W
+\end{bmatrix},\f]
+
+if \f$W \ne 0\f$.
+
+Due to this mapping, all multiples \f$k P_h\f$, for \f$k \ne 0\f$, of a homogeneous point represent
+the same point \f$P_h\f$. An intuitive understanding of this property is, that under a projective
+transformation all multiples of \f$P_h\f$ are mapped to the same point. This is the physical
+observation one does for pinhole cameras, as all points along a ray through the camera's pinhole are
+projected to the same image point, e.g. all points along the red ray in the image of the pinhole
+camera model above would be mapped to the same image coordinate. This property is also the source
+for the scale ambiguity s in the equation of the pinhole camera model.
+
+As mentioned, by using homogeneous coordinates we can express the change of basis parameterized by
+\f$R\f$ and \f$t\f$ as a linear transformation:
+
+\f[P_c = R P_w + t \rightarrow P_{h_c} = \begin{bmatrix}
+R & t \\
+0 & 1
+\end{bmatrix} P_{h_w}.\f]
 
 @note
     -   Many functions in this module take a camera matrix as an input parameter. Although all
