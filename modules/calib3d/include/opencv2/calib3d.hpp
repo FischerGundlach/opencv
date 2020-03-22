@@ -52,20 +52,20 @@
   @defgroup calib3d Camera Calibration and 3D Reconstruction
 
 The functions in this section use a so-called pinhole camera model. The view of a scene
-is obtained by projecting a scene's 3D point \f$P_w\f$ into the image plane which forms
-the corresponding pixel \f$p\f$. The distortion-free projective transformation given by
-such a camera model is shown below.
+is obtained by projecting a scene's 3D point \f$P_w\f$ into the image plane using a perspective
+transformation which forms the corresponding pixel \f$p\f$. The distortion-free projective
+transformation given by such a camera model is shown below.
 
 \f[s \; p = A \begin{bmatrix} R|t \end{bmatrix} P_w,\f]
 
 where \f$P_w\f$ is a 3D point expressed with respect to the world coordinate system,
 \f$p\f$ is a 2D pixel in the image plane, \f$A\f$ is the intrinsic camera matrix,
 \f$R\f$ and \f$t\f$ are the rotation and translation that describe the change of coordinates from
-world to camera coordinate systems and \f$s\f$ is the projective transformation's arbitrary scaling
-and not part of the camera model.
+world to camera coordinate systems (or camera frame) and \f$s\f$ is the projective transformation's
+arbitrary scaling and not part of the camera model.
 
-The intrinsic camera matrix \f$A\f$ projects 3D points given in the camera coordinate system to 2D
-pixel coordinates, i.e.
+The intrinsic camera matrix \f$A\f$ (notation used as in @cite Zhang2000 and also generally notated
+as \f$K\f$) projects 3D points given in the camera coordinate system to 2D pixel coordinates, i.e.
 
 \f[p = A P_c.\f]
 
@@ -1579,8 +1579,8 @@ parameters. Order of deviations values:
 \f$(f_x, f_y, c_x, c_y, k_1, k_2, p_1, p_2, k_3, k_4, k_5, k_6 , s_1, s_2, s_3,
  s_4, \tau_x, \tau_y)\f$ If one of parameters is not estimated, it's deviation is equals to zero.
 @param stdDeviationsExtrinsics Output vector of standard deviations estimated for extrinsic
-parameters. Order of deviations values: \f$(R_0, T_0, \dotsc , R_M, T_M)\f$ where M is number of
-pattern views, \f$R_i, T_i\f$ are concatenated 1x3 vectors.
+parameters. Order of deviations values: \f$(R_0, T_0, \dotsc , R_{M - 1}, T_{M - 1})\f$ where M is
+the number of pattern views. \f$R_i, T_i\f$ are concatenated 1x3 vectors.
  @param perViewErrors Output vector of the RMS re-projection error estimated for each pattern view.
 @param flags Different flags that may be zero or a combination of the following values:
 -   **CALIB_USE_INTRINSIC_GUESS** cameraMatrix contains valid initial values of
@@ -1855,8 +1855,8 @@ relate to each other. This means, if the relative position and orientation (\f$R
 two cameras is known, it is possible to compute (\f$R_2\f$,\f$T_2\f$) when (\f$R_1\f$,\f$T_1\f$) is
 given. This is what the described function does. It computes (\f$R\f$,\f$T\f$) such that:
 
-\f[R_2=R*R_1\f]
-\f[T_2=R*T_1 + T.\f]
+\f[R_2=R R_1\f]
+\f[T_2=R T_1 + T.\f]
 
 Therefore, one can compute the coordinate representation of a 3D point for the second camera's
 coordinate system when given the point's coordinate representation in the first camera's coordinate
@@ -1868,7 +1868,8 @@ Y_2 \\
 Z_2 \\
 1
 \end{bmatrix} = \begin{bmatrix}
-R|T
+R & T \\
+0 & 1
 \end{bmatrix} \begin{bmatrix}
 X_1 \\
 Y_1 \\
@@ -1879,7 +1880,7 @@ Z_1 \\
 
 Optionally, it computes the essential matrix E:
 
-\f[E= \vecthreethree{0}{-T_2}{T_1}{T_2}{0}{-T_0}{-T_1}{T_0}{0} *R\f]
+\f[E= \vecthreethree{0}{-T_2}{T_1}{T_2}{0}{-T_0}{-T_1}{T_0}{0} R\f]
 
 where \f$T_i\f$ are components of the translation vector \f$T\f$ : \f$T=[T_0, T_1, T_2]^T\f$ .
 And the function can also compute the fundamental matrix F:
