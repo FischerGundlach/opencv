@@ -179,12 +179,6 @@ Z_w \\
 1
 \end{bmatrix}.\f]
 
-Without loss of generality, we will say that the matrix of extrinsic parameters gives the change
-from the world coordinate system to the camera coordinate system. Therefore, if one obtains
-\f$\begin{bmatrix} R|t \end{bmatrix}\f$ with respect to an object coordinate system, for example
-using @ref calibrateCamera, then one needs to keep in mind, that the extrinsic parameters do not
-express the change of basis from world to camera system but from object to camera system.
-
 Putting the equations for instrincs and extrinsics together, we can write out
 \f$s \; p = A \begin{bmatrix} R|t \end{bmatrix} P_w\f$ as
 
@@ -378,13 +372,14 @@ projected to the same image point, e.g. all points along the red ray in the imag
 camera model above would be mapped to the same image coordinate. This property is also the source
 for the scale ambiguity s in the equation of the pinhole camera model.
 
-As mentioned, by using homogeneous coordinates we can express the change of basis parameterized by
-\f$R\f$ and \f$t\f$ as a linear transformation:
+As mentioned, by using homogeneous coordinates we can express any change of basis parameterized by
+\f$R\f$ and \f$t\f$ as a linear transformation, e.g. for the change of basis from coordinate system
+0 to coordinate system 1 becomes:
 
-\f[P_c = R P_w + t \rightarrow P_{h_c} = \begin{bmatrix}
+\f[P_1 = R P_0 + t \rightarrow P_{h_1} = \begin{bmatrix}
 R & t \\
 0 & 1
-\end{bmatrix} P_{h_w}.\f]
+\end{bmatrix} P_{h_0}.\f]
 
 @note
     -   Many functions in this module take a camera matrix as an input parameter. Although all
