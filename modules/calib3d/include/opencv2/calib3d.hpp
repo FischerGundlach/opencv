@@ -91,13 +91,13 @@ respectively) by the same factor.
 
 The joint rotation-translation matrix \f$[R|t]\f$ is the matrix product of a projective
 transformation and a homogeneous transformation. The 3-by-4 projective transformation maps 3D points
-represented in camera coordinates to 2D points in the image plane and represented in camera
-coordinates:
+represented in camera coordinates to 2D poins in the image plane and represented in normalized
+camera coordinates \f$x' = X_c / Z_c\f$ and \f$y' = Y_c / Z_c\f$:
 
-\f[\begin{bmatrix}
-X_c \\
-Y_c \\
-Z_c
+\f[Z_c \begin{bmatrix}
+x' \\
+y' \\
+1
 \end{bmatrix} = \begin{bmatrix}
 1 & 0 & 0 & 0 \\
 0 & 1 & 0 & 0 \\
@@ -350,7 +350,7 @@ Z \\
 1
 \end{bmatrix}.\f]
 
-For the inverse mapping \f$P_h \rightarrow P\f$, one devides all elements of the homogeneous vector
+For the inverse mapping \f$P_h \rightarrow P\f$, one divides all elements of the homogeneous vector
 by its last element, e.g. for a 3D homogeneous vector one gets its 2D cartesian counterpart by:
 
 \f[\begin{bmatrix}
@@ -365,8 +365,8 @@ Y / W
 if \f$W \ne 0\f$.
 
 Due to this mapping, all multiples \f$k P_h\f$, for \f$k \ne 0\f$, of a homogeneous point represent
-the same point \f$P_h\f$. An intuitive understanding of this property is, that under a projective
-transformation all multiples of \f$P_h\f$ are mapped to the same point. This is the physical
+the same point \f$P_h\f$. An intuitive understanding of this property is that under a projective
+transformation, all multiples of \f$P_h\f$ are mapped to the same point. This is the physical
 observation one does for pinhole cameras, as all points along a ray through the camera's pinhole are
 projected to the same image point, e.g. all points along the red ray in the image of the pinhole
 camera model above would be mapped to the same image coordinate. This property is also the source
